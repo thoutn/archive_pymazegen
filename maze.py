@@ -86,36 +86,31 @@ def build_maze(size_x: int, size_y: int) -> list:
         return frontier_cells.pop()
 
     def carve_passage(xx: int, yy: int) -> None:
-        maze_[yy][xx] = 1
-        build_steps.append(copy.deepcopy(maze_))
-
-        if not is_near_right_edge(xx) and not is_carved(xx + 2, yy) and (xx + 2, yy) not in frontier_cells: frontier_cells.append((xx + 2, yy))
-        if not is_near_left_edge(xx) and not is_carved(xx - 2, yy) and (xx - 2, yy) not in frontier_cells: frontier_cells.append((xx - 2, yy))
-        if not is_near_bottom_edge(yy) and not is_carved(xx, yy + 2) and (xx, yy + 2) not in frontier_cells: frontier_cells.append((xx, yy + 2))
-        if not is_near_top_edge(yy) and not is_carved(xx, yy - 2) and (xx, yy - 2) not in frontier_cells: frontier_cells.append((xx, yy - 2))
-
-        shuffle(frontier_cells)
         while True:
+            maze_[yy][xx] = 1
+            build_steps.append(copy.deepcopy(maze_))
+
+            if not is_near_right_edge(xx) and not is_carved(xx + 2, yy) and (xx + 2, yy) not in frontier_cells: frontier_cells.append((xx + 2, yy))
+            if not is_near_left_edge(xx) and not is_carved(xx - 2, yy) and (xx - 2, yy) not in frontier_cells: frontier_cells.append((xx - 2, yy))
+            if not is_near_bottom_edge(yy) and not is_carved(xx, yy + 2) and (xx, yy + 2) not in frontier_cells: frontier_cells.append((xx, yy + 2))
+            if not is_near_top_edge(yy) and not is_carved(xx, yy - 2) and (xx, yy - 2) not in frontier_cells: frontier_cells.append((xx, yy - 2))
+
             if not frontier_cells:
-                return
-            elif maze_[frontier_cells[-1][1]][frontier_cells[-1][0]]:
-                x_, y_ = get_next_element()
-            else:
-                x_, y_ = get_next_element()
                 break
+            else:
+                shuffle(frontier_cells)
+                xx, yy = get_next_element()
 
-        in_cells = []
-        if not is_near_right_edge(x_) and is_carved(x_ + 2, y_): in_cells.append((x_ + 1, y_))
-        if not is_near_left_edge(x_) and is_carved(x_ - 2, y_): in_cells.append((x_ - 1, y_))
-        if not is_near_bottom_edge(y_) and is_carved(x_, y_ + 2): in_cells.append((x_, y_ + 1))
-        if not is_near_top_edge(y_) and is_carved(x_, y_ - 2): in_cells.append((x_, y_ - 1))
+            wall_cells = []
+            if not is_near_right_edge(xx) and is_carved(xx + 2, yy): wall_cells.append((xx + 1, yy))
+            if not is_near_left_edge(xx) and is_carved(xx - 2, yy): wall_cells.append((xx - 1, yy))
+            if not is_near_bottom_edge(yy) and is_carved(xx, yy + 2): wall_cells.append((xx, yy + 1))
+            if not is_near_top_edge(yy) and is_carved(xx, yy - 2): wall_cells.append((xx, yy - 1))
 
-        if in_cells:
-            shuffle(in_cells)
-            in_x, in_y = in_cells.pop()
-            maze_[in_y][in_x] = 1
-
-        carve_passage(x_, y_)
+            if wall_cells:
+                shuffle(wall_cells)
+                in_x, in_y = wall_cells.pop()
+                maze_[in_y][in_x] = 1
 
     x, y = (randrange(1, size_x - 1, 2), randrange(1, size_y - 1, 2))
     carve_passage(x, y)
