@@ -3,4 +3,6 @@
 #
 # encoding changed to UTF8, otherwise it does not work
 #
+.idea/
 *.gif
+maze.xlsx
