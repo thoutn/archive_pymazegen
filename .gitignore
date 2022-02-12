@@ -1,0 +1,6 @@
+# created in command line using:
+# echo "" >.gitignore
+#
+# encoding changed to UTF8, otherwise it does not work
+#
+*.gif
