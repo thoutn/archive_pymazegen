@@ -58,6 +58,7 @@ class MazeBuilder(ABC):
         self.height = height
         self._init_maze()
         self._in_cells: list[tuple[int, int]] = []
+        self._frontier_cells: list[tuple[int, int]] = []
         self.build_steps: list[list[list[list[int, int, int]]]] = [copy.deepcopy(self._maze)]
 
     @property
@@ -66,7 +67,7 @@ class MazeBuilder(ABC):
 
     @width.setter
     def width(self, value):
-        self._width = MazeBuilder.validate_size(value)
+        self._width = self._validate_size(value)
 
     @property
     def height(self):
@@ -74,7 +75,7 @@ class MazeBuilder(ABC):
 
     @height.setter
     def height(self, value):
-        self._height = MazeBuilder.validate_size(value)
+        self._height = self._validate_size(value)
 
     @staticmethod
     def is_even(number: int) -> bool:
@@ -82,42 +83,84 @@ class MazeBuilder(ABC):
             return True
         return False
 
-    @staticmethod
-    def correct_size(value: int) -> int:
-        if MazeBuilder.is_even(value):
+    def _correct_size(self, value: int) -> int:
+        if self.is_even(value):
             return value - 1
         else:
             return value
 
-    @staticmethod
-    def validate_size(dim: int) -> tuple[int, int]:
+    def _validate_size(self, dim: int) -> int:
         if dim >= 5:
-            return MazeBuilder.correct_size(dim)
+            return self._correct_size(dim)
         else:
             raise ValueError("Maze size needs to be at least 5x5.")
 
     def _init_maze(self) -> None:
         self._maze = [[COLOUR_GRAY] * self.width for _ in range(self.height)]
 
-    def _is_carved(self, xxx, yyy):
-        if (xxx, yyy) in self._in_cells:
-            return True
-        return False
+    @staticmethod
+    def _near_start(pos: int) -> bool:
+        return pos == 1
+
+    @staticmethod
+    def _near_end(pos: int, dim: int) -> bool:
+        return pos == dim - 2
+
+    def _is_near_right_edge(self, pos):
+        return self._near_end(pos, self.width)
+
+    def _is_near_left_edge(self, pos):
+        return self._near_start(pos)
+
+    def _is_near_bottom_edge(self, pos):
+        return self._near_end(pos, self.height)
+
+    def _is_near_top_edge(self, pos):
+        return self._near_start(pos)
+
+    def _is_marked(self, xx, yy, container: list[tuple[int, int]] = None):
+        if not container:
+            container = self._in_cells
+        return (xx, yy) in container
 
     def _mark_cell(self, cx, cy):
         self._maze[cy][cx] = COLOUR_WHITE2
 
-    def _save_cell(self, xxx, yyy):
-        self._mark_cell(xxx, yyy)
-        self._in_cells.append((xxx, yyy))
+    def _save_cell(self, xx, yy):
+        self._mark_cell(xx, yy)
+        self._in_cells.append((xx, yy))
 
     def _mark_wall(self, wx, wy):
         self._maze[wy][wx] = COLOUR_GRAY
 
+    def _mark_frontier(self, xx, yy, delta_x, delta_y):
+        if not self._is_marked(xx + 2 * delta_x, yy + 2 * delta_y, self._frontier_cells):
+            self._frontier_cells.append((xx + 2 * delta_x, yy + 2 * delta_y))
+            self._maze[yy + 2 * delta_y][xx + 2 * delta_x] = COLOUR_YELLOW
+        self._maze[yy + delta_y][xx + delta_x] = COLOUR_YELLOW2
+
+    def _save_new_frontiers(self, fx, fy):
+        if not self._is_near_right_edge(fx) and not self._is_marked(fx + 2, fy):
+            self._mark_frontier(fx, fy, 1, 0)
+        if not self._is_near_left_edge(fx) and not self._is_marked(fx - 2, fy):
+            self._mark_frontier(fx, fy, -1, 0)
+        if not self._is_near_bottom_edge(fy) and not self._is_marked(fx, fy + 2):
+            self._mark_frontier(fx, fy, 0, 1)
+        if not self._is_near_top_edge(fy) and not self._is_marked(fx, fy - 2):
+            self._mark_frontier(fx, fy, 0, -1)
+
+    @staticmethod
+    def _choose_a_random_element(container: list[tuple[int, int]]) -> tuple[int, int]:
+        shuffle(container)
+        return container.pop()
+
+    def _choose_next_cell_from_frontiers(self) -> tuple[int, int]:
+        return self._choose_a_random_element(self._frontier_cells)
+
     def _add_head_and_tail(self, c: Cell) -> None:
         while True:
             x, y = ((self.width - 1) * c, randrange(1, self.height - 1))
-            if self._is_carved(x + 1 - 2 * c, y):
+            if self._is_marked(x + 1 - 2 * c, y, self._in_cells):
                 self._mark_cell(x, y)
                 self._save_next_anim_frame()
                 break
@@ -137,64 +180,39 @@ class MazeBuilder(ABC):
 
 
 class RandomisedPrimsMazeBuilder(MazeBuilder):
+    """
+    Prim's algorithm is a greedy algorithm, which can be used to find a minimum spanning tree within a graph.
+    The randomised version does not choose the most minimally weighted edge, it chooses any (random) edge
+    directly connecting a vertex within the tree with a vertex outside the tree.
+
+    Uses two randomisation steps:
+        - 1st randomisation occurs when a random cell is chosen as start,
+        - 2nd randomisation occurs when a random cell is chosen from the set of frontier cells.
+    """
     def __init__(self, width: int, height: int):
         super().__init__(width, height)
-        self._in_cells: list[tuple[int, int]] = []
-        self._frontier_cells: list[tuple[int, int]] = []
-        self._paths_to_next_cell: list[tuple[int, int]] = []
+        self._paths_to_cell: list[tuple[int, int]] = []
 
     def build_maze(self) -> None:
-        def is_near_right_edge(pos):
-            return pos == self.width - 2
-
-        def is_near_left_edge(pos):
-            return pos == 1
-
-        def is_near_bottom_edge(pos):
-            return pos == self.height - 2
-
-        def is_near_top_edge(pos):
-            return pos == 1
-
-        def is_marked(xxx, yyy):
-            if (xxx, yyy) in self._frontier_cells:
-                return True
-            return False
-
-        def mark_frontier(xxx, yyy, delta_x, delta_y):
-            if not is_marked(xxx + 2*delta_x, yyy + 2*delta_y):
-                self._frontier_cells.append((xxx + 2*delta_x, yyy + 2*delta_y))
-                self._maze[yyy + 2*delta_y][xxx + 2*delta_x] = COLOUR_YELLOW
-            self._maze[yyy + delta_y][xxx + delta_x] = COLOUR_YELLOW2
-
-        def save_new_frontiers(fx, fy):
-            if not is_near_right_edge(fx) and not self._is_carved(fx + 2, fy): mark_frontier(fx, fy, 1, 0)
-            if not is_near_left_edge(fx) and not self._is_carved(fx - 2, fy): mark_frontier(fx, fy, -1, 0)
-            if not is_near_bottom_edge(fy) and not self._is_carved(fx, fy + 2): mark_frontier(fx, fy, 0, 1)
-            if not is_near_top_edge(fy) and not self._is_carved(fx, fy - 2): mark_frontier(fx, fy, 0, -1)
-
-        def choose_a_random_element(list_: list[tuple[int, int]]) -> tuple[int, int]:
-            shuffle(list_)
-            return list_.pop()
-
-        def choose_next_cell_from_frontiers() -> tuple[int, int]:
-            return choose_a_random_element(self._frontier_cells)
-
-        def get_neighbours_of_next_cell(xx, yy):
-            if not is_near_right_edge(xx) and self._is_carved(xx + 2, yy): self._paths_to_next_cell.append((xx + 1, yy))
-            if not is_near_left_edge(xx) and self._is_carved(xx - 2, yy): self._paths_to_next_cell.append((xx - 1, yy))
-            if not is_near_bottom_edge(yy) and self._is_carved(xx, yy + 2): self._paths_to_next_cell.append((xx, yy + 1))
-            if not is_near_top_edge(yy) and self._is_carved(xx, yy - 2): self._paths_to_next_cell.append((xx, yy - 1))
+        def get_neighbours_of_cell(xx, yy):
+            if not self._is_near_right_edge(xx) and self._is_marked(xx + 2, yy):
+                self._paths_to_cell.append((xx + 1, yy))
+            if not self._is_near_left_edge(xx) and self._is_marked(xx - 2, yy):
+                self._paths_to_cell.append((xx - 1, yy))
+            if not self._is_near_bottom_edge(yy) and self._is_marked(xx, yy + 2):
+                self._paths_to_cell.append((xx, yy + 1))
+            if not self._is_near_top_edge(yy) and self._is_marked(xx, yy - 2):
+                self._paths_to_cell.append((xx, yy - 1))
 
         def choose_a_neighbour() -> tuple[int, int]:
-            return choose_a_random_element(self._paths_to_next_cell)
+            return self._choose_a_random_element(self._paths_to_cell)
 
-        def add_path_to_neighbour(px: int, py: int) -> None:
+        def save_path_to_neighbour(px: int, py: int) -> None:
             self._mark_cell(px, py)
 
         def solidify_walls():
-            while self._paths_to_next_cell:
-                path_x, path_y = self._paths_to_next_cell.pop()
+            while self._paths_to_cell:
+                path_x, path_y = self._paths_to_cell.pop()
                 self._mark_wall(path_x, path_y)
 
         def carve_passage(xx: int, yy: int) -> None:
@@ -202,18 +220,18 @@ class RandomisedPrimsMazeBuilder(MazeBuilder):
                 self._save_cell(xx, yy)
                 self._save_next_anim_frame()
 
-                save_new_frontiers(xx, yy)
+                self._save_new_frontiers(xx, yy)
                 self._save_next_anim_frame()
 
                 if not self._frontier_cells:
                     break
                 else:
-                    xx, yy = choose_next_cell_from_frontiers()
+                    xx, yy = self._choose_next_cell_from_frontiers()
 
-                get_neighbours_of_next_cell(xx, yy)
-                if self._paths_to_next_cell:
+                get_neighbours_of_cell(xx, yy)
+                if self._paths_to_cell:
                     path_x, path_y = choose_a_neighbour()
-                    add_path_to_neighbour(path_x, path_y)
+                    save_path_to_neighbour(path_x, path_y)
 
                     solidify_walls()
 
@@ -225,6 +243,14 @@ class RandomisedPrimsMazeBuilder(MazeBuilder):
 
 
 class RandomisedKruskalsMazeBuilder(MazeBuilder):
+    """
+    Kruskal's algorithm is a greedy algorithm, which operates in the whole graph area creating
+    and binding fragmental acyclic trees to each other.
+
+    Uses one randomisation step:
+        - walls between two cells are chosen in a random order. Unless there is another path
+          between the two cells, the wall is removed.
+    """
     def __init__(self, width: int, height: int):
         super().__init__(width, height)
         self._tree_sets = [{(x, y), } for y in range(1, self.height - 1, 2) for x in range(1, self.width - 1, 2)]
@@ -287,7 +313,7 @@ class RandomisedKruskalsMazeBuilder(MazeBuilder):
 
             join_tree_sets(c1, c2)
 
-        def mark_cannot_remove(xx, yy):
+        def mark_unremovable_wall(xx, yy):
             self._maze[yy][xx] = COLOUR_YELLOW
             self._save_next_anim_frame()
             self._mark_wall(xx, yy)
@@ -296,9 +322,9 @@ class RandomisedKruskalsMazeBuilder(MazeBuilder):
             self._save_cell(c1[0], c1[1])
             self._save_cell(c2[0], c2[1])
             if c1[0] == c2[0]:
-                mark_cannot_remove(c1[0], c1[1] + 1)
+                mark_unremovable_wall(c1[0], c1[1] + 1)
             else:
-                mark_cannot_remove(c1[0] + 1, c1[1])
+                mark_unremovable_wall(c1[0] + 1, c1[1])
 
         def carve_passage() -> None:
             while True:
@@ -320,6 +346,73 @@ class RandomisedKruskalsMazeBuilder(MazeBuilder):
         self._add_maze_start_point()
         self._add_maze_end_point()
 
+
+class BacktrackerMazeBuilder(MazeBuilder):
+    """
+    The Backtracker algorithm is based on the Depth First Search (DFS) technique.
+
+    Uses two randomisation steps:
+        - 1st randomisation occurs when a random cell is chosen as the start,
+        - 2nd randomisation occurs when choosing a frontier cell (child vertex) to carve into from the current cell.
+    """
+    def __init__(self, width: int, height: int):
+        super().__init__(width, height)
+        self._stack = []
+
+    def build_maze(self):
+        def choose_start_cell() -> tuple[int, int]:
+            cells = [(x, y) for y in range(1, self.height - 1, 2) for x in range(1, self.width - 1, 2)]
+            shuffle(cells)
+            return cells.pop()
+
+        def save_path_to_cell(xxx, yyy):
+            delta_x = (self._stack[-1][0] - xxx) // 2
+            delta_y = (self._stack[-1][1] - yyy) // 2
+            self._save_cell(xxx + delta_x, yyy + delta_y)
+
+        def remove_frontiers():
+            while self._frontier_cells:
+                xx, yy = self._frontier_cells.pop()
+                delta_x = (self._stack[-1][0] - xx) // 2
+                delta_y = (self._stack[-1][1] - yy) // 2
+                self._mark_wall(xx, yy)
+                self._mark_wall(xx + delta_x, yy + delta_y)
+
+        def mark_backtrack(xxx, yyy):
+            self._maze[yyy][xxx] = COLOUR_RED
+
+        def take_cell_from_stack():
+            xxx, yyy = self._stack.pop()
+            mark_backtrack(xxx, yyy)
+            return xxx, yyy
+
+        def carve_passage(xx: int, yy: int) -> None:
+            while self._stack or not self._in_cells:
+                self._save_cell(xx, yy)
+                self._save_next_anim_frame()
+
+                self._save_new_frontiers(xx, yy)
+                self._save_next_anim_frame()
+
+                if self._frontier_cells:
+                    self._stack.append((xx, yy))
+                    xx, yy = self._choose_next_cell_from_frontiers()
+                    save_path_to_cell(xx, yy)
+                    remove_frontiers()
+                else:
+                    xx, yy = take_cell_from_stack()
+                    self._save_next_anim_frame()
+
+            self._mark_cell(xx, yy)
+            self._save_next_anim_frame()
+
+        x, y = choose_start_cell()
+        carve_passage(x, y)
+
+        self._add_maze_start_point()
+        self._add_maze_end_point()
+
+
 if __name__ == '__main__':
     size = input("Enter maze size as \"width\"x\"height\": ")
     w, h = size.split('x')
@@ -335,3 +428,9 @@ if __name__ == '__main__':
 
     maze_to_img(kruskals_maze.build_steps[-1], 10).show()
     maze_to_animation(kruskals_maze.build_steps, 'maze_kruskals', 10, 120)
+
+    backtracker_maze = BacktrackerMazeBuilder(int(w), int(h))
+    backtracker_maze.build_maze()
+
+    maze_to_img(backtracker_maze.build_steps[-1], 10).show()
+    maze_to_animation(backtracker_maze.build_steps, 'maze_backtracker', 10, 120)
