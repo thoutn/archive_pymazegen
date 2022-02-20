@@ -6,3 +6,4 @@
 .idea/
 *.gif
 *maze.xlsx
+__pycache__/
