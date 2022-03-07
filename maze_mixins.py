@@ -74,7 +74,11 @@ class CellMixin(StartEndMixin):
         self._maze[wy][wx] = COLOUR_GRAY
 
 
-class FrontierMixin(StartEndMixin):
+class FrontierMixin:
+    def _choose_start_cell(self) -> tuple[int, int]:
+        x, y = (randrange(1, self.width - 1, 2), randrange(1, self.height - 1, 2))
+        return x, y
+
     def _mark_frontier(self, xx, yy, delta_x, delta_y):
         if not self._is_marked(xx + 2 * delta_x, yy + 2 * delta_y, self._frontier_cells):
             self._frontier_cells.append((xx + 2 * delta_x, yy + 2 * delta_y))
@@ -96,5 +100,23 @@ class FrontierMixin(StartEndMixin):
         shuffle(container)
         return container.pop()
 
-    def _choose_next_cell_from_frontiers(self) -> tuple[int, int]:
-        return self._choose_a_random_element(self._frontier_cells)
+    def _choose_next_cell_from(self, container: list[tuple[int, int]]) -> tuple[int, int]:
+        return self._choose_a_random_element(container)
+
+
+class BacktrackMixin(FrontierMixin):
+    def _save_path_to_cell(self, xxx, yyy):
+        delta_x = (self._in_cells[-1][0] - xxx) // 2
+        delta_y = (self._in_cells[-1][1] - yyy) // 2
+        self._save_cell(xxx + delta_x, yyy + delta_y)
+
+    def _remove_frontiers(self):
+        while self._frontier_cells:
+            xx, yy = self._frontier_cells.pop()
+            delta_x = (self._in_cells[-2][0] - xx) // 2
+            delta_y = (self._in_cells[-2][1] - yy) // 2
+            self._mark_wall(xx, yy)
+            self._mark_wall(xx + delta_x, yy + delta_y)
+
+    def _mark_backtrack(self, xxx, yyy):
+        self._maze[yyy][xxx] = COLOUR_RED
