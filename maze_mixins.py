@@ -12,6 +12,8 @@ COLOUR_GREEN = [202, 224, 12]
 COLOUR_GREEN2 = [160, 178, 9]
 COLOUR_RED = [250, 72, 27]  # [247, 54, 5]
 COLOUR_RED2 = [198, 44, 5]
+COLOUR_LRED = [240, 128, 128]
+COLOUR_LGREEN = [153, 255, 153]  # [128, 255, 128]  # [102, 255, 102]
 
 
 class Cell(IntEnum):
@@ -48,12 +50,9 @@ class CheckStatusMixin:
 
 class StartEndMixin:
     def _add_head_and_tail(self, c: Cell) -> None:
-        while True:
-            x, y = ((self.width - 1) * c, randrange(1, self.height - 1, 2))
-            if self._is_marked(x + 1 - 2 * c, y, self._in_cells):
-                self._mark_cell(x, y)
-                self._save_next_anim_frame()
-                break
+        x, y = ((self.width - 1) * c, randrange(1, self.height - 1, 2))
+        self._mark_cell(x, y)
+        self._save_next_anim_frame()
 
     def _add_maze_start_point(self):
         self._add_head_and_tail(Cell.START)
