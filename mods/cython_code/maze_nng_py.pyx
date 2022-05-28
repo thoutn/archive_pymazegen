@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import math
 import random
 import statistics
@@ -12,10 +10,6 @@ from enum import IntEnum
 
 
 class Cell:
-    """
-    Represents a graph node = maze cell.
-    Each cell contains a link to its neighbours.
-    """
     def __init__(self, row: int, column: int):
         self.row = row
         self.column = column
@@ -27,12 +21,12 @@ class Cell:
         self.right = None
         self.left = None
 
-    def link_to(self, cell: Cell, bidirect=True) -> None:
+    def link_to(self, cell, bidirect=True) -> None:
         self.links[cell] = True
         if bidirect:
             cell.link_to(self, False)
 
-    def unlink_from(self, cell: Cell, bidirect=True) -> None:
+    def unlink_from(self, cell, bidirect=True) -> None:
         del self.links[cell]
         if bidirect:
             cell.unlink_from(self, False)
@@ -45,7 +39,7 @@ class Cell:
             return True
         return False
 
-    def neighbours(self) -> list[Cell | None]:
+    def neighbours(self) -> list:
         lst = []
         if self.top: lst.append(self.top)
         if self.bottom: lst.append(self.bottom)
@@ -53,17 +47,37 @@ class Cell:
         if self.left: lst.append(self.left)
         return lst
 
+#     @abstractmethod
+#     def neighbours(self) -> list:
+#         pass
+#
+#
+# class RectCell(Cell):
+#     def __init__(self, row: int, column: int):
+#         super().__init__()
+#         self.row = row
+#         self.column = column
+#
+#         self.top = None
+#         self.bottom = None
+#         self.right = None
+#         self.left = None
+#
+#     def neighbours(self) -> list:
+#         lst = []
+#         if self.top: lst.append(self.top)
+#         if self.bottom: lst.append(self.bottom)
+#         if self.right: lst.append(self.right)
+#         if self.left: lst.append(self.left)
+#         return lst
+
 
 class CircCell(Cell):
-    """
-    A modified graph node = maze cell, used for circular mazes represented in polar coordinates.
-    Each cell can has more than one bottom neighbour.
-    """
     def __init__(self, row: int, column: int):
         super().__init__(row, column)
         self.bottom = []
 
-    def neighbours(self) -> list[Cell | None]:
+    def neighbours(self) -> list:
         lst = []
         if self.bottom: lst.extend(self.bottom)
 
@@ -75,9 +89,6 @@ class CircCell(Cell):
 
 
 class Grid:
-    """
-    The maze, made of numerous cells linked together.
-    """
     def __init__(self, width: int, height: int):
         self._width = width
         self._height = height
@@ -87,14 +98,12 @@ class Grid:
         self._configure_cells()
 
     def _prepare_grid(self) -> None:
-        """Initialises the geometry = rectangular maze of size (a x b)."""
         for row in range(self._height):
             self.cells.append(list())
             for col in range(self._width):
                 self.cells[row].append(Cell(row, col))
 
     def _configure_cells(self) -> None:
-        """Links each cell to its neighbours."""
         for row in self.cells:
             for cell in row:
                 row_, col_ = cell.row, cell.column
@@ -104,36 +113,30 @@ class Grid:
                 cell.right = self._create_neighbours(row_, col_ + 1)
                 cell.left = self._create_neighbours(row_, col_ - 1)
 
-    def _create_neighbours(self, row, column) -> Cell | None:
+    def _create_neighbours(self, row, column):
         if 0 <= row <= self._width - 1 and 0 <= column <= self._height - 1:
             return self.cells[row][column]
         else:
             return None
 
-    def get_random_cell(self) -> Cell:
+    def get_random_cell(self):
         return self.cells[random.randrange(0, self._height)][random.randrange(0, self._width)]
 
     @property
     def size(self) -> int:
         return self._width * self._height
 
-    def get_next_row(self) -> Generator[list[Cell], None, None]:
+    def get_next_row(self) -> Generator[list, None, None]:
         for row in self.cells:
             yield row
 
-    def get_next_cell(self) -> Generator[Cell | None, None, None]:
+    def get_next_cell(self):
         for row in self.cells:
             for cell in row:
                 yield cell if cell else None
 
 
 class CircGrid(Grid):
-    """
-    Modified maze representation for circular mazes.
-
-    .. note::
-        Top most cell is the central one.
-    """
     def __init__(self, height: int):
         super().__init__(1, height)
 
@@ -195,7 +198,7 @@ class BinaryTreeMazeBuilder(MazeBuilder):
         self.grid = grid
 
     @staticmethod
-    def _choose_neighbour_of(cell: Cell) -> Cell | None:
+    def _choose_neighbour_of(cell: Cell):
         neighbours = []
         if cell.top: neighbours.append(cell.top)
         # if cell.top: neighbours.extend([cell.top]*3)
@@ -210,7 +213,8 @@ class BinaryTreeMazeBuilder(MazeBuilder):
     def build_maze(self) -> None:
         for cell in self.grid.get_next_cell():
             # neighbour = self._choose_neighbour_of(cell)
-            if neighbour := self._choose_neighbour_of(cell):
+            neighbour = self._choose_neighbour_of(cell)
+            if neighbour:
                 cell.link_to(neighbour)
 
 
@@ -225,7 +229,8 @@ class RecursiveBacktrackerMazeBuilder(MazeBuilder):
         while self.stack:
             current_cell = self.stack[-1]
 
-            if neighbours := [cell for cell in current_cell.neighbours() if not cell.has_linked_cells()]:
+            neighbours = [cell for cell in current_cell.neighbours() if not cell.has_linked_cells()]
+            if neighbours:
                 random.shuffle(neighbours)
                 neighbour = neighbours.pop()
 
@@ -257,7 +262,6 @@ class SidewinderMazeBuilder(MazeBuilder):
 
 
 class Prims_oldMazeBuilder(MazeBuilder):
-    """Prim's algo using python list to store the frontier cells. """
     def __init__(self, grid: Grid):
         self.grid = grid
         self.frontier_cells: list[Cell] = []
@@ -269,11 +273,13 @@ class Prims_oldMazeBuilder(MazeBuilder):
             random.shuffle(self.frontier_cells)
             current_cell = self.frontier_cells.pop()
 
-            if neighbours := [cell for cell in current_cell.neighbours() if not cell.has_linked_cells()
-                              and cell not in self.frontier_cells]:
+            neighbours = [cell for cell in current_cell.neighbours() if not cell.has_linked_cells()
+                          and cell not in self.frontier_cells]
+            if neighbours:
                 self.frontier_cells.extend(neighbours)
 
-            if in_cells := [cell for cell in current_cell.neighbours() if cell.has_linked_cells()]:
+            in_cells = [cell for cell in current_cell.neighbours() if cell.has_linked_cells()]
+            if in_cells:
                 in_cell = random.choice(in_cells)
                 in_cell.link_to(current_cell)
             else:
@@ -281,7 +287,6 @@ class Prims_oldMazeBuilder(MazeBuilder):
 
 
 class PrimsMazeBuilder(MazeBuilder):
-    """Prim's algo (same as above) using python set to store the frontier cells. """
     def __init__(self, grid: Grid):
         self.grid = grid
         self.frontier_cells: set[Cell] = set()
@@ -293,10 +298,12 @@ class PrimsMazeBuilder(MazeBuilder):
             current_cell = random.choice(list(self.frontier_cells))
             self.frontier_cells.remove(current_cell)
 
-            if neighbours := {cell for cell in current_cell.neighbours() if not cell.has_linked_cells()}:
+            neighbours = {cell for cell in current_cell.neighbours() if not cell.has_linked_cells()}
+            if neighbours:
                 self.frontier_cells = self.frontier_cells | neighbours
 
-            if in_cells := [cell for cell in current_cell.neighbours() if cell.has_linked_cells()]:
+            in_cells = [cell for cell in current_cell.neighbours() if cell.has_linked_cells()]
+            if in_cells:
                 in_cell = random.choice(in_cells)
                 in_cell.link_to(current_cell)
             else:
@@ -304,15 +311,9 @@ class PrimsMazeBuilder(MazeBuilder):
 
 
 class KruskalsMazeBuilder(MazeBuilder):
-    """
-    Kruskal's algo storing the tree sets in a list of sets.
-
-    It requires a linear lookup (complexity of O(n) {min}) of the cell in the tree sets
-    to identify the sets to be joined.
-    """
     def __init__(self, grid: Grid):
         self.grid = grid
-        self._tree_sets: list[set[Cell | None]] = [{cell} for cell in self.grid.get_next_cell()]
+        self._tree_sets: list = [{cell} for cell in self.grid.get_next_cell()]
 
     def _get_tree_index(self, cell: Cell) -> int:
         for i, set_ in enumerate(self._tree_sets):
@@ -339,13 +340,6 @@ class KruskalsMazeBuilder(MazeBuilder):
 
 
 class Kruskals2MazeBuilder(MazeBuilder):
-    """
-    Kruskal's algo storing the tree sets in a dictionary with K: Cell and V: set.
-
-    Using a dictionary (hash map) to reduce the complexity of lookup of the sets to be joined to O(1).
-    However, it necessitates a refresh of dict values corresponding to the dict keys (cells)
-    that are in the new joined set.
-    """
     def __init__(self, grid: Grid):
         self.grid = grid
 
@@ -373,13 +367,6 @@ class Kruskals2MazeBuilder(MazeBuilder):
 
 
 class Kruskals3MazeBuilder(MazeBuilder):
-    """
-    Another variation on Kruskal's algo using a nested class = State of the tree sets.
-
-    Uses two dictionaries:
-        - one to store the id of tree set (dict V) the cell (dict K) is part of;
-        - another to store the tree set (dict V) corresponding to a set id (dict K).
-    """
     class State:
         def __init__(self, grid: Grid):
             self.grid = grid
@@ -430,7 +417,6 @@ class Kruskals3MazeBuilder(MazeBuilder):
 
 
 class EllersMazeBuilder(MazeBuilder):
-    """Eller's algo, storing the tree sets in a list. """
     def __init__(self, grid: Grid):
         self.grid = grid
 
@@ -443,7 +429,7 @@ class EllersMazeBuilder(MazeBuilder):
                 return i
 
     @staticmethod
-    def _create_link_to_next_row(tree_set: set) -> set[Cell]:
+    def _create_link_to_next_row(tree_set: set) -> set:
         tree_set = list(tree_set)
         random.shuffle(tree_set)
         new_set = set()
@@ -492,12 +478,11 @@ class EllersMazeBuilder(MazeBuilder):
 
 
 class Ellers2MazeBuilder(MazeBuilder):
-    """Eller's algo storing the tree sets in a dict. """
     def __init__(self, grid: Grid):
         self.grid = grid
 
     @staticmethod
-    def _create_link_to_next_row(tree_set: set) -> dict[Cell, set[Cell]]:
+    def _create_link_to_next_row(tree_set: set) -> dict:
         tree_set = list(tree_set)
         random.shuffle(tree_set)
         new_set = set()
@@ -550,11 +535,6 @@ class Ellers2MazeBuilder(MazeBuilder):
 
 
 class HuntAndKillMazeBuilder(MazeBuilder):
-    """
-    Hunt and Kill algo (a modification of the Recursive backtracking algo),
-    which stores all the unvisited neighbours in a set. When the 'random walk' hits a dead-end
-    the algo picks from this set to continue the path carving, without the need to do the backtracking.
-    """
     def __init__(self, grid: Grid):
         self.grid = grid
 
@@ -563,7 +543,8 @@ class HuntAndKillMazeBuilder(MazeBuilder):
         unvisited_cells: set[Cell] = {current_cell}
 
         while unvisited_cells:
-            if neighbours := {n for n in current_cell.neighbours() if not n.has_linked_cells()}:
+            neighbours = {n for n in current_cell.neighbours() if not n.has_linked_cells()}
+            if neighbours:
                 neighbour = random.choice(list(neighbours))
                 neighbours.remove(neighbour)
                 unvisited_cells = unvisited_cells | neighbours
@@ -571,7 +552,6 @@ class HuntAndKillMazeBuilder(MazeBuilder):
                 current_cell.link_to(neighbour)
                 current_cell = neighbour
             else:
-                # removes all cells from the unvisited set that became visited after during the 'random walk'
                 for cell in list(unvisited_cells):
                     if cell.has_linked_cells():
                         unvisited_cells.remove(cell)
@@ -586,16 +566,11 @@ class HuntAndKillMazeBuilder(MazeBuilder):
 
 
 class HuntAndKillScanMazeBuilder(MazeBuilder):
-    """
-    A variation to the Hunt and Kill algo, where the unvisited neighbours are not memorised.
-    When the 'random walk' hits a dead-end the whole maze is scanned cell by cell, until an unvisited cell
-    adjacent to a visited one is found. The algo then pics this cell as a start point to do another 'random walk'.
-    """
     def __init__(self, grid: Grid):
         self.grid = grid
 
     @staticmethod
-    def _choose_neighbour_of(cell: Cell) -> Cell | None:
+    def _choose_neighbour_of(cell: Cell):
         neighbours = []
         if cell.left and not cell.left.has_linked_cells(): neighbours.append(cell.left)
         if cell.right and not cell.right.has_linked_cells(): neighbours.append(cell.right)
@@ -609,7 +584,8 @@ class HuntAndKillScanMazeBuilder(MazeBuilder):
         current_cell = self.grid.get_random_cell()
 
         while True:
-            if neighbours := {n for n in current_cell.neighbours() if not n.has_linked_cells()}:
+            neighbours = {n for n in current_cell.neighbours() if not n.has_linked_cells()}
+            if neighbours:
                 neighbour = random.choice(list(neighbours))
 
                 current_cell.link_to(neighbour)
@@ -618,7 +594,8 @@ class HuntAndKillScanMazeBuilder(MazeBuilder):
                 is_unvisited_found = False
                 for cell in self.grid.get_next_cell():
                     if cell.has_linked_cells():
-                        if neighbour := self._choose_neighbour_of(cell):
+                        neighbour = self._choose_neighbour_of(cell)
+                        if neighbour:
                             cell.link_to(neighbour)
                             current_cell = neighbour
                             is_unvisited_found = True
@@ -628,15 +605,11 @@ class HuntAndKillScanMazeBuilder(MazeBuilder):
 
 
 class HuntAndKillScan2MazeBuilder(MazeBuilder):
-    """
-    Simple modification of the previous one, which checks only the right and left neighbours of the visited cells.
-    This one checks all neighbours of the visited cells during the scan.
-    """
     def __init__(self, grid: Grid):
         self.grid = grid
 
     @staticmethod
-    def _choose_neighbour_of(cell: Cell, neighbours: set) -> Cell | None:
+    def _choose_neighbour_of(cell: Cell, neighbours: set):
         neighbour = random.choice(list(neighbours))
         cell.link_to(neighbour)
         return neighbour
@@ -645,13 +618,15 @@ class HuntAndKillScan2MazeBuilder(MazeBuilder):
         current_cell = self.grid.get_random_cell()
 
         while True:
-            if neighbours := {n for n in current_cell.neighbours() if not n.has_linked_cells()}:
+            neighbours = {n for n in current_cell.neighbours() if not n.has_linked_cells()}
+            if neighbours:
                 current_cell = self._choose_neighbour_of(current_cell, neighbours)
             else:
                 is_unvisited_found = False
                 for cell in self.grid.get_next_cell():
                     if not cell.has_linked_cells():
-                        if neighbours := {n for n in cell.neighbours() if n.has_linked_cells()}:
+                        neighbours = {n for n in cell.neighbours() if n.has_linked_cells()}
+                        if neighbours:
                             current_cell = self._choose_neighbour_of(current_cell, neighbours)
                             is_unvisited_found = True
                             break
@@ -660,7 +635,6 @@ class HuntAndKillScan2MazeBuilder(MazeBuilder):
 
 
 class Label:
-    """Context manager used to simulate a label break. """
     class Break(Exception):
         def __init__(self, ctx):
             self.ctx = ctx
@@ -676,17 +650,11 @@ class Label:
 
 
 class HuntAndKillScan3MazeBuilder(MazeBuilder):
-    """
-    Modification of the above one.
-    Uses memoization of uncompleted rows (rows with unvisited cells) to speed up the scan part of the algo.
-
-    .. todo:: fix it, doesn't work all the time - most probably the row gets deleted before it is complete.
-    """
     def __init__(self, grid: Grid):
         self.grid = grid
 
     @staticmethod
-    def _choose_neighbour_of(cell: Cell, neighbours: set) -> Cell | None:
+    def _choose_neighbour_of(cell: Cell, neighbours: set):
         neighbour = random.choice(list(neighbours))
         cell.link_to(neighbour)
         return neighbour
@@ -696,7 +664,8 @@ class HuntAndKillScan3MazeBuilder(MazeBuilder):
         rows_with_unvisited: list[int] = [row_id for row_id in range(self.grid._height)]
 
         while True:
-            if neighbours := {n for n in current_cell.neighbours() if not n.has_linked_cells()}:
+            neighbours = {n for n in current_cell.neighbours() if not n.has_linked_cells()}
+            if neighbours:
                 current_cell = self._choose_neighbour_of(current_cell, neighbours)
             else:
                 is_unvisited_found = False
@@ -704,7 +673,8 @@ class HuntAndKillScan3MazeBuilder(MazeBuilder):
                     for row in rows_with_unvisited[:]:
                         for cell in self.grid.cells[row]:
                             if not cell.has_linked_cells():
-                                if neighbours := {n for n in cell.neighbours() if n.has_linked_cells()}:
+                                neighbours = {n for n in cell.neighbours() if n.has_linked_cells()}
+                                if neighbours:
                                     current_cell = self._choose_neighbour_of(current_cell, neighbours)
                                     is_unvisited_found = True
                                     search.break_()
@@ -882,9 +852,7 @@ class AsciiPresenter:
 
                 if cell.is_linked_to(cell.right):
                     right_boundary = ' '
-                    output[-1] = self.replace_char(output[-1],
-                                                   corners_ver[corners_ver.index(output[-1][5*(j + 1)]) + 1],
-                                                   5*(j + 1))
+                    output[-1] = self.replace_char(output[-1], corners_ver[corners_ver.index(output[-1][5*(j + 1)]) + 1], 5*(j + 1))
                 else:
                     right_boundary = wall_ver
 
@@ -1001,10 +969,8 @@ class ImagePresenter:
                     radius_ = (row + 0.75) * self.size * ANTIALIAS_
                     circumf_ = radius_ * 2 * math.pi
                     alpha = (360 * (wall_width / 2)) / circumf_
-                    shape_ = [(w // 2 - radius1 + wall_width, h // 2 - radius1 + wall_width),
-                              (w // 2 + radius1 - wall_width, h // 2 + radius1 - wall_width)]
-                    draw.arc(shape_, start=(col * theta) + alpha, end=((col + 1) * theta) - alpha,
-                             fill=(250, 150, 150), width=self.size * ANTIALIAS_ - wall_width)
+                    shape_ = [(w // 2 - radius1 + wall_width, h // 2 - radius1 + wall_width), (w // 2 + radius1 - wall_width, h // 2 + radius1 - wall_width)]
+                    draw.arc(shape_, start=(col * theta) + alpha, end=((col + 1) * theta) - alpha, fill=(250, 150, 150), width=self.size * ANTIALIAS_ - wall_width)
 
                 if not cell.is_linked_to(cell.left):
                     c = np.cos(math.radians(theta) * col)
@@ -1163,13 +1129,13 @@ if __name__ == "__main__":
     # huntkill = HuntAndKillScan2MazeBuilder(grid)
     # huntkill.build_maze()
     #
-    # Hunt & Kill algo - scan mode v3.0
-    grid = Grid(10, 10)
-    huntkill = HuntAndKillScan3MazeBuilder(grid)
-    huntkill.build_maze()
-
-    img = ImagePresenter(grid, wall_thickness=2)
-    img.render()
+    # # Hunt & Kill algo - scan mode v3.0
+    # grid = Grid(10, 10)
+    # huntkill = HuntAndKillScan3MazeBuilder(grid)
+    # huntkill.build_maze()
+    #
+    # img = ImagePresenter(grid, wall_thickness=2)
+    # img.render()
     #
     # # Aldous-Broder algo
     # grid = Grid(10, 10)

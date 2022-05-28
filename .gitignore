@@ -9,3 +9,7 @@
 *.txt
 *maze.xlsx
 __pycache__/
+build/
+*.pyd
+*.c
+*.html

@@ -7,6 +7,10 @@ from PIL import Image, ImageDraw
 
 
 class Grid:
+    """
+    Maze represented by a matrix - contains both the cell and wall.
+    If cell visited - entry = 1, otherwise entry = 0.
+    """
     def __init__(self, width: int, height: int):
         self._width = width
         self._height = height

@@ -15,6 +15,12 @@ class Dir(Enum):
 
 
 class Grid:
+    """
+    Combines the node and matrix representation.
+    Stores only the cells in a matrix, with a dictionary holding the links to the cell's neighbours.
+    Pretty much same as 'maze_nng' variant, except it doesn't need the creation and multiple instantiation
+    of the 'Cell' class.
+    """
     def __init__(self, width: int, height: int) -> None:
         self._width = width
         self._height = height
