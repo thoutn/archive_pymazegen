@@ -1052,23 +1052,23 @@ def plot_statistics(methods: list[str]) -> None:
 
 
 if __name__ == "__main__":
-    # # Binary Tree algo
+    # ========================= Binary Tree algo =========================
     # grid = Grid(10, 10)
     # binary = BinaryTreeMazeBuilder(grid)
     # binary.build_maze()
     #
     # ascii_art = AsciiPresenter(grid)
     # ascii_art.to_string()
-    #
-    # # Recursive backtracker algo
+
+    # ==================== Recursive backtracker algo ====================
     # grid = Grid(10, 10)
     # backtracker = RecursiveBacktrackerMazeBuilder(grid)
     # backtracker.build_maze()
     #
     # ascii_art = AsciiPresenter(grid)
     # ascii_art.to_string()
-    #
-    # # Sidewinder algo
+
+    # ========================= Sidewinder algo ==========================
     # grid = Grid(10, 10)
     # sidewinder = SidewinderMazeBuilder(grid)
     # sidewinder.build_maze()
@@ -1078,8 +1078,8 @@ if __name__ == "__main__":
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    #
-    # # Prim's algo
+
+    # =========================== Prim's algo ============================
     # grid = Grid(10, 10)
     # prims = Prims_oldMazeBuilder(grid)
     # prims.build_maze()
@@ -1089,8 +1089,8 @@ if __name__ == "__main__":
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    #
-    # # Kruskal's algo
+
+    # ========================== Kruskal's algo ==========================
     # grid = Grid(10, 10)
     # kruskals = KruskalsMazeBuilder(grid)
     # kruskals.build_maze()
@@ -1100,24 +1100,24 @@ if __name__ == "__main__":
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    #
-    # # Kruskal's algo w/ dict
+
+    # ====================== Kruskal's algo w/ dict ======================
     # grid = Grid(10, 10)
     # kruskals = Kruskals2MazeBuilder(grid)
     # kruskals.build_maze()
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    #
-    # # Kruskal's algo w/ state
+
+    # ===================== Kruskal's algo w/ state ======================
     # grid = Grid(10, 10)
     # kruskals = Kruskals3MazeBuilder(grid)
     # kruskals.build_maze()
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    #
-    # # Eller's algo
+
+    # =========================== Eller's algo ===========================
     # grid = Grid(10, 10)
     # ellers = EllersMazeBuilder(grid)
     # ellers.build_maze()
@@ -1127,8 +1127,8 @@ if __name__ == "__main__":
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    #
-    # # Eller's algo v2.0
+
+    # ======================== Eller's algo v2.0 =========================
     # grid = Grid(10, 10)
     # ellers = Ellers2MazeBuilder(grid)
     # ellers.build_maze()
@@ -1146,8 +1146,8 @@ if __name__ == "__main__":
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    #
-    # # Hunt & Kill algo - scan mode
+
+    # =================== Hunt & Kill algo - scan mode ===================
     # grid = Grid(10, 10)
     # huntkill = HuntAndKillScanMazeBuilder(grid)
     # huntkill.build_maze()
@@ -1162,16 +1162,16 @@ if __name__ == "__main__":
     # grid = Grid(10, 10)
     # huntkill = HuntAndKillScan2MazeBuilder(grid)
     # huntkill.build_maze()
-    #
-    # Hunt & Kill algo - scan mode v3.0
+
+    # ================ Hunt & Kill algo - scan mode v3.0 =================
     grid = Grid(10, 10)
     huntkill = HuntAndKillScan3MazeBuilder(grid)
     huntkill.build_maze()
 
     img = ImagePresenter(grid, wall_thickness=2)
     img.render()
-    #
-    # # Aldous-Broder algo
+
+    # ======================== Aldous-Broder algo ========================
     # grid = Grid(10, 10)
     # aldousbroder = AldousBroderMazeBuilder(grid)
     # aldousbroder.build_maze()
@@ -1181,8 +1181,8 @@ if __name__ == "__main__":
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    # #
-    # # Wilson's algo
+
+    # ========================== Wilson's algo ===========================
     # grid = Grid(10, 10)
     # wilsons = WilsonsMazeBuilder(grid)
     # wilsons.build_maze()
@@ -1192,135 +1192,18 @@ if __name__ == "__main__":
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    #
-    # Recursive Division algo
+
+    # ==================== Recursive Division algo =======================
     # grid = Grid(10, 10)
     # division = RecursiveDivisionMazeBuilder(grid)
     # division.build_maze()
     #
     # img = ImagePresenter(grid, wall_thickness=2)
     # img.render()
-    #
-    # grid = Grid(10, 10)
-    # # ascii_art = AsciiPresenter(grid)
-    # # ascii_art.to_string()
-    # img = ImagePresenter(grid, wall_thickness=2)
-    # img = img.render()
-    #
-    # img1 = ImageDraw.Draw(img)
-    # img1.rectangle((10, 10, 40, 40), fill=(250, 250, 250))
-    # img.show()
 
-    # Timeit
+    # ============================= Timeit ===============================
     import timeit
 
-    # stmt_code = f'x = 0 \nfor i in range(100): \n    for j in range(100): \n        x = (x + 2 - 1)*3'
-    # time = timeit.repeat(stmt=stmt_code, repeat=2, number=10)
-    # base_time = statistics.mean(time)
-    # print(base_time)
-    #
-    # # Binary Tree algo: 0.13 - 0.13
-    # stmt_code = "grid = Grid(20, 20) \nbinary = BinaryTreeMazeBuilder(grid) \nbinary.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import BinaryTreeMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Binary Tree algo: {time}')
-    #
-    # # Backtracker algo: 0.22 - 0.26 (20x20); 1.37 - 1.41 (50x50)
-    # stmt_code = "grid = Grid(20, 20) \nbacktracker = RecursiveBacktrackerMazeBuilder(grid) \nbacktracker.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import RecursiveBacktrackerMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Recursive backtracker algo: {time}')
-    #
-    # # Sidewinder algo:
-    # stmt_code = "grid = Grid(20, 20) \nsidewinder = SidewinderMazeBuilder(grid) \nsidewinder.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import SidewinderMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Sidewinder algo: {time}')
-    #
-    # stmt_code = "grid = Grid(20, 20) \nprims = Prims_oldMazeBuilder(grid) \nprims.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import Prims_oldMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Prim\'s algo w/ list: {time}')
-    #
-    # # Prim's algo:
-    # stmt_code = "grid = Grid(20, 20) \nprims = PrimsMazeBuilder(grid) \nprims.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import PrimsMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Prim\'s algo w/ set: {time}')
-    #
-    # # Kruskal's algo: 0.88 - 0.99 (20x20); 32.6 - 35.1 (50x50)
-    # stmt_code = "grid = Grid(20, 20) \nkruskals = KruskalsMazeBuilder(grid) \nkruskals.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import KruskalsMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Kruskal\'s algo: {time}')
-    #
-    # # Kruskal's algo w/ dict: 0.26 - 0.28 (20x20); 4.16 - 4.31 (50x50)
-    # stmt_code = "grid = Grid(50, 50) \nkruskals = Kruskals2MazeBuilder(grid) \nkruskals.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import Kruskals2MazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Kruskal\'s algo: {time}')
-    #
-    # # Kruskal's algo w/ state: 0.28 - 0.29 (20x20); 4.65 - 5.04 (50x50)
-    # stmt_code = "grid = Grid(50, 50) \nkruskals = Kruskals3MazeBuilder(grid) \nkruskals.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import Kruskals3MazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Kruskal\'s algo: {time}')
-    #
-    # # Eller's algo: 0.187 - 0.20 (20x20); 1.22 - 1.29 (50x50); 5.18 - 5.51 (100x100); 24.06 - 24.41 (200x200)
-    # stmt_code = "grid = Grid(200, 200) \nellers = EllersMazeBuilder(grid) \nellers.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import EllersMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Eller\'s algo: {time}')
-    #
-    # # Eller's algo v2.0: 0.187 - 0.20 (20x20); 1.16 - 1.37 (50x50); 4.65 - 4.72 (100x100); 19.06 - 19.32 (200x200)
-    # stmt_code = "grid = Grid(200, 200) \nellers = Ellers2MazeBuilder(grid) \nellers.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import Ellers2MazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Eller\'s algo v2.0: {time}')
-    #
-    # # Hunt & Kill algo w/ list: 0.23 - 0.28 (20x20); 3.49 - 3.57 (50x50)
-    # # Hunt & Kill algo w/ set: 0.23 - 0.28 (20x20); 2.65 - 2.75 (50x50)
-    # stmt_code = "grid = Grid(20, 20) \nhuntkill = HuntAndKillMazeBuilder(grid) \nhuntkill.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import HuntAndKillMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Hunt & Kill algo: {time}')
-    #
-    # # Hunt & Kill algo scan mode: 0.58 - 0.62 (20x20); 18.5 - 19.6 (50x50)
-    # stmt_code = "grid = Grid(20, 20) \nhuntkill = HuntAndKillScanMazeBuilder(grid) \nhuntkill.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import HuntAndKillScanMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Hunt & Kill algo scan mode: {time}')
-    #
-    # # Hunt & Kill algo scan mode v2.0: 0.31 - 0.32 (20x20); 6.23 - 6.61 (50x50)
-    # stmt_code = "grid = Grid(20, 20) \nhuntkill = HuntAndKillScan2MazeBuilder(grid) \nhuntkill.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import HuntAndKillScan2MazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Hunt & Kill algo scan mode v2.0: {time}')
-    #
-    # # Hunt & Kill algo scan mode v3.0: 0.18 - 0.19 (20x20); 1.09 - 1.29 (50x50)
-    # stmt_code = "grid = Grid(20, 20) \nhuntkill = HuntAndKillScan3MazeBuilder(grid) \nhuntkill.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import HuntAndKillScan3MazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Hunt & Kill algo scan mode v3.0: {time}')
-    #
-    # # Aldous-Broder algo: 0.82 - 1.08 (20x20); 7.47 - 9.01 (50x50)
-    # stmt_code = "grid = Grid(20, 20) \naldousbroder = AldousBroderMazeBuilder(grid) \naldousbroder.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import AldousBroderMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Aldous-Broder algo: {time}')
-    #
-    # # Wilson's algo: 0.63 - 0.67 (20x20); 5.15 - 6.11 (50x50)
-    # stmt_code = "grid = Grid(50, 50) \nwilsons = WilsonsMazeBuilder(grid) \nwilsons.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import WilsonsMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Wilson\'s algo: {time}')
-    #
-    # # Recursive Division algo: 0.14 - 0.14 (20x20); 0.86 - 0.88 (50x50)
-    # stmt_code = "grid = Grid(20, 20) \ndivision = RecursiveDivisionMazeBuilder(grid) \ndivision.build_maze()"
-    # time = timeit.repeat(stmt=stmt_code, setup="from __main__ import RecursiveDivisionMazeBuilder, Grid", repeat=5,
-    #                      number=100)
-    # print(f'Recursive Division algo: {time}')
-    #
     plot_statistics(["BinaryTree",
                      # "RecursiveBacktracker",
                      # "Sidewinder",
@@ -1338,17 +1221,11 @@ if __name__ == "__main__":
                       "Kruskals3"])#,
                      # "RecursiveDivision"])
 
+    # ============================= CircGrid =============================
     # grid = CircGrid(10)
     # img = ImagePresenter(grid, wall_thickness=2)
     # img = img.render()
     # RecursiveBacktrackerMazeBuilder(grid).build_maze()
-    # # SidewinderMazeBuilder(grid).build_maze()
-    # #
+
     # img = ImagePresenter(grid, wall_thickness=2)
     # img = img.render()
-    #
-    # # img1 = ImageDraw.Draw(img)
-    # # img1.rectangle((10, 10, 40, 40), fill=(250, 250, 250))
-    # # img.show()
-
-

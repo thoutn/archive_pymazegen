@@ -20,8 +20,8 @@ class ImagePresenter:
     def render(self):
         if type(self.grid) == Grid:
             return self._render_rect_grid()
-        elif type(self.grid) == CircGrid:
-            return self._render_circ_grid()
+        # elif type(self.grid) == CircGrid:
+        #     return self._render_circ_grid()
 
     def _render_rect_grid(self):
         w = self._set_size(self.grid.width)
@@ -56,54 +56,6 @@ class ImagePresenter:
         img.show()
         return img
 
-    def _render_circ_grid(self):
-        ANTIALIAS_ = 4
-        wall_width = self.wall_ * ANTIALIAS_
-        offset = wall_width // 2
-
-        w = h = 2*self._set_size(self.grid._height) * ANTIALIAS_
-
-        img = Image.new("RGB", size=(w, h), color=(220, 220, 220))
-        draw = ImageDraw.Draw(img)
-
-        for row in range(1, self.grid._height):
-            radius1 = (row + 0.75)*self.size * ANTIALIAS_
-            radius0 = radius1 - self.size * ANTIALIAS_
-            shape = [(w//2 - radius0, h//2 - radius0), (w//2 + radius0, h//2 + radius0)]
-
-            theta = 360 / len(self.grid.cells[row])
-
-            for col in range(len(self.grid.cells[row])):
-                cell = self.grid.cells[row][col]
-
-                if not cell.is_linked_to(cell.top):
-                    draw.arc(shape, start=(col * theta), end=((col + 1) * theta), fill=(0, 0, 0), width=wall_width)
-
-                if True:#col == 3: #row == 3 and col == 3:
-                    radius_ = (row + 0.75) * self.size * ANTIALIAS_
-                    circumf_ = radius_ * 2 * math.pi
-                    alpha = (360 * (wall_width / 2)) / circumf_
-                    shape_ = [(w // 2 - radius1 + wall_width, h // 2 - radius1 + wall_width), (w // 2 + radius1 - wall_width, h // 2 + radius1 - wall_width)]
-                    draw.arc(shape_, start=(col * theta) + alpha, end=((col + 1) * theta) - alpha, fill=(250, 150, 150), width=self.size * ANTIALIAS_ - wall_width)
-
-                if not cell.is_linked_to(cell.left):
-                    c = np.cos(math.radians(theta) * col)
-                    s = np.sin(math.radians(theta) * col)
-                    rot_matrix = np.array(((c, -s), (s, c)))
-
-                    x0, y0 = np.dot(rot_matrix, (radius0 - 2*offset, 0))
-                    x1, y1 = np.dot(rot_matrix, (radius1, 0))
-
-                    draw.line((x0 + w//2, y0 + h//2, x1 + w//2, y1 + h//2), fill=(0, 0, 0), width=wall_width)
-
-            if row == self.grid._height - 1:
-                shape = [(w // 2 - radius1, h // 2 - radius1), (w // 2 + radius1, h // 2 + radius1)]
-                draw.arc(shape, start=0, end=360, fill=(0, 0, 0), width=wall_width)
-
-        img = img.resize((w // ANTIALIAS_, h // ANTIALIAS_), resample=Image.ANTIALIAS)
-        img.show()
-        return img
-
 
 def plot_statistics(methods: list[str]) -> None:
     import itertools
@@ -114,11 +66,11 @@ def plot_statistics(methods: list[str]) -> None:
     # ls = ('-', '--', '-.', ':')
 
     for method in methods:
-        # global base_time
         x = []
         y = []
 
         for i in range(20, 100, 10):
+            # Cython
             if "maze_nng_cy" in method:
                 stmt_code = f'grid = Grid({i}, {i}) \nmethod = {method}MazeBuilder(grid) \nmethod.build_maze()'
                 time = timeit.repeat(stmt=stmt_code,
@@ -126,6 +78,7 @@ def plot_statistics(methods: list[str]) -> None:
                                            + f'import cython_code.maze_nng_cy as maze_nng_cy',
                                      repeat=5,
                                      number=10)
+            # cythonized python
             elif "maze_nng_py" in method:
                 stmt_code = f'grid = Grid({i}, {i}) \nmethod = {method}MazeBuilder(grid) \nmethod.build_maze()'
                 time = timeit.repeat(stmt=stmt_code,
@@ -133,6 +86,7 @@ def plot_statistics(methods: list[str]) -> None:
                                            + f'import cython_code.maze_nng_py as maze_nng_py',
                                      repeat=5,
                                      number=10)
+            # pure python
             else:
                 stmt_code = f'grid = Grid({i}, {i}) \nmethod = {method}MazeBuilder(grid) \nmethod.build_maze()'
                 time = timeit.repeat(stmt=stmt_code,
@@ -140,7 +94,7 @@ def plot_statistics(methods: list[str]) -> None:
                                      repeat=5,
                                      number=10)
             x.append(i)
-            y.append(statistics.mean(time))# / base_time)
+            y.append(statistics.mean(time))
 
         plt.plot(x, y, label=method, c=next(colors), ls=next(markers))
 
@@ -153,23 +107,9 @@ if __name__ == '__main__':
     # plot_statistics(["maze_nng_cy.BinaryTree",
     #                  "maze_nng_py.BinaryTree",
     #                  "maze_nng.BinaryTree",
-    #                  # "RecursiveBacktracker",
-    #                  # "Sidewinder",
-    #                  # # # "Prims_old",
-    #                  # # "Prims",
-    #                  # # # "Kruskals",
-    #                  # # "Ellers",
-    #                  # # "HuntAndKill",
-    #                  # # # "HuntAndKillScan",
-    #                  # # "AldousBroder",
-    #                  # # "Wilsons",
-    #                  # # # "HuntAndKillScan2",
-    #                  #  "Kruskals2",
-    #                  # # "HuntAndKillScan3",
     #                  "maze_nng_cy.Kruskals3",
     #                  "maze_nng_py.Kruskals3",
     #                  "maze_nng.Kruskals3"])
-    #                  # "RecursiveDivision"])
 
     from cython_code.maze_nng_cy import BinaryTreeMazeBuilder
 
