@@ -1205,21 +1205,22 @@ if __name__ == "__main__":
     import timeit
 
     plot_statistics(["BinaryTree",
-                     # "RecursiveBacktracker",
-                     # "Sidewinder",
-                     # # "Prims_old",
-                     # "Prims",
-                     # # "Kruskals",
-                     # "Ellers",
-                     # "HuntAndKill",
-                     # # "HuntAndKillScan",
-                     # "AldousBroder",
-                     # "Wilsons",
-                     # # "HuntAndKillScan2",
-                     #  "Kruskals2",
-                     # "HuntAndKillScan3",
-                      "Kruskals3"])#,
-                     # "RecursiveDivision"])
+                     "RecursiveBacktracker",
+                     "Sidewinder",
+                     "Prims_old",
+                     "Prims",
+                     "Kruskals",
+                     "Kruskals2",
+                     "Kruskals3",
+                     "Ellers",
+                     "Ellers2",
+                     "HuntAndKill",
+                     "HuntAndKillScan",
+                     "HuntAndKillScan2",
+                     "HuntAndKillScan3",
+                     "AldousBroder",
+                     "Wilsons",
+                     "RecursiveDivision"])
 
     # ============================= CircGrid =============================
     # grid = CircGrid(10)

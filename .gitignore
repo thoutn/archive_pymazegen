@@ -13,3 +13,5 @@ build/
 *.pyd
 *.c
 *.html
+
+!mods/images/*.*
